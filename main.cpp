@@ -4,13 +4,12 @@
 #include <list>
 #include <map>
 #include <algorithm>
-#include <SFML/Graphics.hpp>
+#include <vector>
+//#include <SFML/Graphics.hpp>
 
 #define NOT_SET 1000000
 
 using namespace std;
-
-
 
 bool sortBySecond(const pair<int, int>& a, const pair<int, int>& b) {
     return a.second < b.second;
@@ -41,9 +40,13 @@ public:
 
     void BFS(int v);
 
-    void Prim(int v);
+    void Prim(int point);
 
     void Dijkstra(int startingPoint);
+
+    void DijkstraRecursion(int point);
+
+    void DijkstraRecursionStart(int point);
 };
 
 void Graph::resetOutput() {
@@ -107,10 +110,11 @@ void Graph::Dijkstra(int startingPoint) {
     vector<int> queue;
     queue.push_back(startingPoint);
 
-    int prev_parent = startingPoint;
+    int prevParentPos = 0;
     for (int i = 0; i < queue.size(); ++i){
+        bool newChild = false;
         int parent = queue[i];
-        edges.push_back((prev_parent, parent));
+//        edges.push_back((prevParentPos, parent));
         if (visited[parent]) continue;
         visited[parent] = true;
         vector<pair<int, int>> temp_queue;
@@ -123,7 +127,55 @@ void Graph::Dijkstra(int startingPoint) {
         sort(temp_queue.begin(), temp_queue.end(), sortBySecond);
         for (auto element : temp_queue){
             queue.insert(queue.begin() + i, element.first);
+            newChild = true;
         }
+        if (newChild){
+            prevParentPos++;
+        }
+    }
+}
+
+void::Graph::DijkstraRecursionStart(int point){
+    resetDistance();
+    distanceToVert[point] = 0;
+    DijkstraRecursion(point);
+}
+
+void::Graph::DijkstraRecursion(int point){
+    sorted.push_back(point);
+    vector<pair<int, int>> childrenQueue;
+    for (auto child : adj_[point]){
+        if (distanceToVert[child.first] < distanceToVert[point] + child.second) continue;
+        distanceToVert[child.first] = distanceToVert[point] + child.second;
+        if (visited[child.first]) continue;
+        childrenQueue.push_back(child);
+    }
+    sort(childrenQueue.begin(), childrenQueue.end(), sortBySecond);
+    for (auto nextPoint : childrenQueue) {
+        if (visited[nextPoint.first]) continue;
+        edges.emplace_back(point, nextPoint.first);
+        DijkstraRecursion(nextPoint.first);
+    }
+}
+
+void::Graph::Prim(int point){
+    map<pair<int, int>, int> edgeQueue;
+    for (int i = 0; i < adj_.size(); ++i) {
+        visited[point] = true;
+        for (auto child: adj_[point]) {
+            edgeQueue[{point, child.first}] = child.second;
+        }
+        pair<pair<int, int>, int> shortestEdge = {{-1, -1}, NOT_SET};
+        vector<pair<int, int>> toErase;
+        for (auto edge: edgeQueue) {
+            if (visited[edge.first.second]) toErase.push_back(edge.first);
+            else if (edge.second < shortestEdge.second) shortestEdge = edge;
+        }
+        for (auto edge : toErase) {
+            edgeQueue.erase(edge);
+        }
+        if (shortestEdge.first.second != -1) edges.push_back(shortestEdge.first);
+        point = shortestEdge.first.second;
     }
 }
 
@@ -141,22 +193,28 @@ int main()
     g.addEdge(3, 3, 2);
     g.addEdge(1, 0, 10);
 
-	cout << "Following is Depth First Traversal"
-			" (starting from vertex 2) \n";
-
-	// Function call
-	g.DFS(2);
-    g.print();
-    g.resetOutput();
 
 
-    g.BFS(2);
-    g.print();
 
-    g.Dijkstra(0);
-    for (int i = 0; i < g.distanceToVert.size(); ++i) {
-        cout << i << " " << g.distanceToVert[i] << endl;
+    g.Prim(0);
+    for (auto edge : g.edges) {
+        cout << edge.first << " " << edge.second << endl;
     }
+//    g.DijkstraRecursionStart(0);
+//    for (int i = 0; i < g.distanceToVert.size(); ++i) {
+//        cout << i << " " << g.distanceToVert[i] << endl;
+//    }
+//	g.DFS(2);
+//    g.print();
+//    g.resetOutput();
+//
+//
+//    g.BFS(2);
+//    g.print();
+
+
+//    g.Dijkstra(0);
+
 
 //    sf::RenderWindow window(sf::VideoMode(800, 600), "SFML Points Array Example");
 //    window.setFramerateLimit(30);
