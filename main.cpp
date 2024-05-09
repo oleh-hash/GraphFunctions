@@ -47,6 +47,8 @@ public:
     void DijkstraRecursion(int point);
 
     void DijkstraRecursionStart(int point);
+
+    void AStar(int point);
 };
 
 void Graph::resetOutput() {
@@ -179,6 +181,10 @@ void::Graph::Prim(int point){
     }
 }
 
+void::Graph::AStar(int point){
+
+}
+
 // Driver code
 int main()
 {
@@ -192,8 +198,6 @@ int main()
 	g.addEdge(1, 3, 2);
     g.addEdge(3, 3, 2);
     g.addEdge(1, 0, 10);
-
-
 
 
     g.Prim(0);
