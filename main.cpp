@@ -11,6 +11,8 @@
 
 using namespace std;
 
+vector<pair<vector<int>, vector<int>>> history;
+
 bool sortBySecond(const pair<int, int>& a, const pair<int, int>& b) {
     return a.second < b.second;
 }
@@ -23,12 +25,15 @@ public:
     map<int, int> distanceToVert;
     list<int> sorted;
     list<pair<int, int>> edges;
+    map<int, int> heuristicValue;
 
 
 	// Function to add an edge to graph
 	void addEdge(int v, int w);
 
     void addEdge(int v, int w, int weight);
+
+    void addHeuristicValue(int point,int value);
 
     void print();
 
@@ -48,8 +53,12 @@ public:
 
     void DijkstraRecursionStart(int point);
 
-    void AStar(int point);
+    void AStar(int start, int end);
 };
+
+void Graph::addHeuristicValue(int point,int value){
+    heuristicValue[point] = value;
+}
 
 void Graph::resetOutput() {
     visited.clear();
@@ -181,7 +190,40 @@ void::Graph::Prim(int point){
     }
 }
 
-void::Graph::AStar(int point){
+void::Graph::AStar(int start, int end){
+    distanceToVert[start] = 0;
+    map<int, int> cameFrom;
+    cameFrom[start] = start;
+    map<int, int> distanceTo;
+    vector<pair<int,int>> openQueue;
+    openQueue.push_back({start, 0});
+    while(!openQueue.empty()){
+        pair<int, int> closestElement = {NOT_SET, NOT_SET};
+        int index;
+        for (int i = 0; i < openQueue.size(); i++) {
+            if (openQueue[i].second < closestElement.second) {
+                closestElement = openQueue[i];
+                index = openQueue[i].first;
+            }
+
+        }
+        openQueue.erase(openQueue.begin() + index);
+        visited[index] = true;
+        int temp_i = 0;
+        for (auto nextElement : adj_[index]){
+            if (nextElement.second + heuristicValue[nextElement.first] < distanceToVert[nextElement.second]){
+                openQueue.push_back({nextElement.first, nextElement.second + heuristicValue[nextElement.first]});
+                distanceToVert[nextElement.second] = nextElement.second + heuristicValue[nextElement.first];
+                cameFrom[index] = temp_i;
+            }
+            temp_i++;
+        }
+    }
+    int element = end;
+    while(element != cameFrom[element]){
+        sorted.push_front(cameFrom[element]);
+        element = cameFrom[element];
+    }
 
 }
 
@@ -199,11 +241,18 @@ int main()
     g.addEdge(3, 3, 2);
     g.addEdge(1, 0, 10);
 
+    g.addHeuristicValue(0, 2);
+    g.addHeuristicValue(1, 1);
+    g.addHeuristicValue(2, 1);
+    g.addHeuristicValue(3, 0);
 
-    g.Prim(0);
-    for (auto edge : g.edges) {
-        cout << edge.first << " " << edge.second << endl;
-    }
+
+
+    g.AStar(0, 3);
+//    g.Prim(0);
+//    for (auto edge : g.edges) {
+//        cout << edge.first << " " << edge.second << endl;
+//    }
 //    g.DijkstraRecursionStart(0);
 //    for (int i = 0; i < g.distanceToVert.size(); ++i) {
 //        cout << i << " " << g.distanceToVert[i] << endl;
